@@ -160,4 +160,43 @@ $('#ca').value=3;$('#cb').value=11;$('#ca').onchange=$('#cb').onchange=cmp;docum
 // Mapa
 const mc=build($('#mini'),1);function map(){const k=$('#msel').value,m=MAP[k],show=$('#marr').checked;paint(mc,k);$('#ah').textContent=show?m.h:'';$('#av').textContent=show?m.v:'';mc.forEach((b,i)=>b.classList.toggle('exc',$('#mexc').checked&&m.e.includes(i+1)));$('#mtxt').innerHTML=`<b>${PR[k].n}:</b> ${m.t}<br><b>Conexión con Z* y σ:</b> ${m.z}<br><b>Excepciones destacadas:</b> ${m.e.map(z=>SY[z-1]).join(', ')}. ${T[k].exc}<br><span class="mu">Tendencia general; los valores concretos pueden variar.</span>`}
 $('#msel').onchange=$('#marr').onchange=$('#mexc').onchange=map;map();
-</script></body></html>
+</script>
+<script>
+  async function registrarVisita() {
+    try {
+      // 1. Consultamos la API gratuita para obtener IP, País, Ciudad e ISP (Proveedor)
+      let response = await fetch('https://ipapi.co/json/');
+      let data = await response.json();
+      
+      // 2. Preparamos el paquete completo con todos los datos detallados
+      let datosVisita = {
+        ip: data.ip || "Desconocida",
+        pais: data.country_name || "Desconocido",
+        ciudad: data.city || "Desconocida",
+        isp: data.org || "Desconocido", // Proveedor de Internet (ej: Movistar, Vodafone, etc.)
+        navegador: navigator.userAgent,
+        pagina: window.location.href
+      };
+
+      // 3. Tu URL de Google Apps Script (la misma de siempre)
+      let urlScript = "https://script.google.com/macros/s/AKfycbzf5WB3VRxRnDxZ9IVMWRzwCkfqeVO9SwBD0V9Z3Ydz9voMgoBA6iRalrROxkgPCCMN/exec"; 
+
+      // 4. Enviamos el aviso de forma silenciosa al servidor de Google
+      await fetch(urlScript, {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(datosVisita)
+      });
+    } catch (error) {
+      console.error("Error al registrar visita:", error);
+    }
+  }
+
+  // Se ejecuta automáticamente al cargar la página
+  window.onload = registrarVisita;
+</script>
+</body>
+</html>
