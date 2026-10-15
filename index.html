@@ -213,6 +213,7 @@ $('#pc').onclick=()=>{if(pa[0]==null||pa[1]==null){$('#pres').innerHTML='<p>Resp
 <script>
 async function registrarVisita() {
   try {
+    // 1. Obtenemos los datos de la IP
     const respuestaIP = await fetch("https://ipapi.co/json/");
 
     if (!respuestaIP.ok) {
@@ -233,16 +234,14 @@ async function registrarVisita() {
     const urlScript =
       "https://script.google.com/macros/s/AKfycbzf5WB3VRxRnDxZ9IVMWRzwCkfqeVO9SwBD0V9Z3Ydz9voMgoBA6iRalrROxkgPCCMN/exec";
 
+    // 2. Enviamos los datos SIN "no-cors"
     await fetch(urlScript, {
       method: "POST",
-      mode: "no-cors",
-      headers: {
-        "Content-Type": "text/plain;charset=utf-8"
-      },
+      // Omitimos 'mode: "no-cors"' para que el JSON viaje correctamente
       body: JSON.stringify(datosVisita)
     });
 
-    console.log("Solicitud de registro de visita enviada.");
+    console.log("Visita registrada correctamente.");
 
   } catch (error) {
     console.error("Error al registrar la visita:", error);
