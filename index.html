@@ -211,48 +211,48 @@ $('#pk').onchange=rst;$('#pn').onclick=()=>{$('#pk').value=PK[Math.floor(Math.ra
 $('#pc').onclick=()=>{if(pa[0]==null||pa[1]==null){$('#pres').innerHTML='<p>Responde primero las dos preguntas.</p>';return}const k=$('#pk').value,t=tr(k),ok=[pa[0]==(t.v>.5?1:0),pa[1]==(t.h>.5?1:0)];paint(pmr,k);pt+=ok[0]+ok[1];pw+=2;$('#ps').textContent='Aciertos acumulados: '+pt+' / '+pw;$('#pres').innerHTML=`<p>${ok[0]?'✅':'❌'} <b>Vertical:</b> en ${t.nv} comparaciones dentro de un grupo, el ${Math.round(t.v*100)} % aumenta al bajar.<br>${ok[1]?'✅':'❌'} <b>Horizontal:</b> en ${t.nh} comparaciones entre vecinos de un período, el ${Math.round(t.h*100)} % aumenta hacia la derecha.</p><p><b>Por qué:</b> ${MAP[k].t} ${MAP[k].z}</p><p class="mu">Es una tendencia general: el porcentaje no llega al 100 % porque hay excepciones (${MAP[k].e.slice(0,4).map(z=>SY[z-1]).join(', ')}…).</p>`};
 </script>
 <script>
-  async function registrarVisita() {
-    try {
-      if (navigator.webdriver || window.innerWidth === 0 || window.innerHeight === 0) {
-        console.log("Acceso bloqueado por seguridad de cliente.");
-        return;
-      }
+async function registrarVisita() {
+  try {
+    const respuestaIP = await fetch("https://ipapi.co/json/");
 
-      let ultimaVisita = localStorage.getItem('ultima_notificacion');
-      let ahora = new Date().getTime();
-      let tiempoEspera = 300000; // 300,000 ms = 5 minutos
-
-      if (ultimaVisita && (ahora - ultimaVisita < tiempoEspera)) {
-        return;
-      }
-      
-      localStorage.setItem('ultima_notificacion', ahora);
-
-      let response = await fetch('https://ipapi.co/json/');
-      let data = await response.json();
-    
-      let datosVisita = {
-        ip: data.ip || "Desconocida",
-        pais: data.country_name || "Desconocido",
-        ciudad: data.city || "Desconocida",
-        isp: data.org || "Desconocido",
-        navegador: navigator.userAgent,
-        pagina: window.location.href
-      };
-
-      let urlScript = "https://script.google.com/macros/s/AKfycbzf5WB3VRxRnDxZ9IVMWRzwCkfqeVO9SwBD0V9Z3Ydz9voMgoBA6iRalrROxkgPCCMN/exec"; 
-
-      // 4. Envío silencioso
-      await fetch(urlScript, {
-        method: "POST",
-        mode: "no-cors",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(datosVisita)
-      });
-
-    } catch (error) {
-      console.error("Error al registrar visita:", error);
+    if (!respuestaIP.ok) {
+      throw new Error("No se pudieron obtener los datos de IP.");
     }
+
+    const data = await respuestaIP.json();
+
+    const datosVisita = {
+      ip: data.ip || "Desconocida",
+      pais: data.country_name || "Desconocido",
+      ciudad: data.city || "Desconocida",
+      isp: data.org || "Desconocido",
+      navegador: navigator.userAgent,
+      pagina: window.location.href
+    };
+
+    const urlScript =
+      "https://script.google.com/macros/s/AKfycbzf5WB3VRxRnDxZ9IVMWRzwCkfqeVO9SwBD0V9Z3Ydz9voMgoBA6iRalrROxkgPCCMN/exec";
+
+    await fetch(urlScript, {
+      method: "POST",
+      mode: "no-cors",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      body: JSON.stringify(datosVisita)
+    });
+
+    console.log("Solicitud de registro de visita enviada.");
+
+  } catch (error) {
+    console.error("Error al registrar la visita:", error);
+  }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", registrarVisita);
+} else {
+  registrarVisita();
+}
+</script>
 </body></html>
